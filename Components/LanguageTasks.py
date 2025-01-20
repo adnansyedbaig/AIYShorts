@@ -1,7 +1,7 @@
 from transformers import pipeline
 
 # Initialize the Hugging Face summarization model
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+summarizer = pipeline("summarization", model="google/muril-base-cased")
 
 # Define the system prompt
 system_prompt = """
