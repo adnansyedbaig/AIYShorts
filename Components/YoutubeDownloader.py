@@ -1,57 +1,45 @@
 import os
-from pytubefix import YouTube
 import ffmpeg
 
-def get_video_size(stream):
+# Ensure 'videos' directory exists
+if not os.path.exists('videos'):
+    os.makedirs('videos')
 
-    return stream.filesize / (1024 * 1024)
-
-def download_youtube_video(url):
+def download_youtube_video(youtube_url):
+    # Placeholder for actual download logic
+    # Assume video_file and audio_file are obtained after download
+    video_file = "path_to_video_file.mp4"
+    audio_file = "path_to_audio_file.mp3"
+    
+    output_file = os.path.join('videos', 'output.mp4')
     try:
-        yt = YouTube(url)
+        stream = ffmpeg.input(video_file)
+        audio = ffmpeg.input(audio_file)
+        stream = ffmpeg.output(stream, audio, output_file, vcodec='libx264', acodec='aac', strict='experimental')
+        ffmpeg.run(stream, overwrite_output=True)
 
-        video_streams = yt.streams.filter(type="video").order_by('resolution').desc()
-        audio_stream = yt.streams.filter(only_audio=True).first()
-
-        print("Available video streams:")
-        for i, stream in enumerate(video_streams):
-            size = get_video_size(stream)
-            stream_type = "Progressive" if stream.is_progressive else "Adaptive"
-            print(f"{i}. Resolution: {stream.resolution}, Size: {size:.2f} MB, Type: {stream_type}")
-
-        choice = int(input("Enter the number of the video stream to download: "))
-        selected_stream = video_streams[choice]
-
-        if not os.path.exists('videos'):
-            os.makedirs('videos')
-
-        print(f"Downloading video: {yt.title}")
-        video_file = selected_stream.download(output_path='videos', filename_prefix="video_")
-
-        if not selected_stream.is_progressive:
-            print("Downloading audio...")
-            audio_file = audio_stream.download(output_path='videos', filename_prefix="audio_")
-
-            print("Merging video and audio...")
-            output_file = os.path.join('videos', f"{yt.title}.mp4")
-            stream = ffmpeg.input(video_file)
-            audio = ffmpeg.input(audio_file)
-            stream = ffmpeg.output(stream, audio, output_file, vcodec='libx264', acodec='aac', strict='experimental')
-            ffmpeg.run(stream, overwrite_output=True)
-
-            os.remove(video_file)
-            os.remove(audio_file)
-        else:
-            output_file = video_file
-
-        
-        print(f"Downloaded: {yt.title} to 'videos' folder")
-        print(f"File path: {output_file}")
-        return output_file
-
+        os.remove(video_file)
+        os.remove(audio_file)
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"Error processing video and audio: {e}")
+        output_file = video_file
+
+    print(f"Downloaded: {youtube_url} to 'videos' folder")
+    print(f"File path: {output_file}")
+
+    # Extract audio and save as audio.wav
+    audio_output_path = os.path.join('videos', 'audio.wav')
+    try:
+        stream = ffmpeg.input(output_file)
+        stream = ffmpeg.output(stream, audio_output_path, acodec='pcm_s16le', ac=1, ar='16k')  # Extract audio as WAV
+        ffmpeg.run(stream, overwrite_output=True)
+    except Exception as e:
+        print(f"Error extracting audio: {e}")
+
+    print(f"Extracted audio to: {audio_output_path}")
+    return output_file
 
 if __name__ == "__main__":
     youtube_url = input("Enter YouTube video URL: ")
-    download_youtube_video(youtube_url)
+    video_path = download_youtube_video(youtube_url)
+    print("Video downloaded to:", video_path)
