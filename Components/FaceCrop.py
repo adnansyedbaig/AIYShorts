@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from moviepy.editor import VideoFileClip
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 from Components.Speaker import detect_faces_and_speakers, Frames
 
 def crop_to_vertical(input_video_path, output_video_path):
@@ -23,7 +23,7 @@ def crop_to_vertical(input_video_path, output_video_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (vertical_width, vertical_height))
 
-    while cap.isOpened():
+    for _ in range(total_frames):
         ret, frame = cap.read()
         if not ret:
             break
@@ -44,9 +44,10 @@ def crop_to_vertical(input_video_path, output_video_path):
 
     cap.release()
     out.release()
-    print(f"Video saved to {output_video_path}")
+    cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    input_video_path = "input_video.mp4"
-    output_video_path = "output_video.mp4"
-    crop_to_vertical(input_video_path, output_video_path)
+def combine_videos(video1_path, video2_path, output_path):
+    clip1 = VideoFileClip(video1_path)
+    clip2 = VideoFileClip(video2_path)
+    final_clip = concatenate_videoclips([clip1, clip2])
+    final_clip.write_videofile(output_path)
