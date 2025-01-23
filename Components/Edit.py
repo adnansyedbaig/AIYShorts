@@ -1,4 +1,3 @@
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.editor import VideoFileClip
 import subprocess
 
@@ -14,19 +13,21 @@ def extractAudio(video_path):
         print(f"An error occurred while extracting audio: {e}")
         return None
 
-
 def crop_video(input_file, output_file, start_time, end_time):
-    with VideoFileClip(input_file) as video:
-        cropped_video = video.subclip(start_time, end_time)
-        cropped_video.write_videofile(output_file, codec='libx264')
+    try:
+        with VideoFileClip(input_file) as video:
+            cropped_video = video.subclip(start_time, end_time)
+            cropped_video.write_videofile(output_file, codec='libx264')
+        print(f"Cropped video saved to: {output_file}")
+    except Exception as e:
+        print(f"An error occurred while cropping the video: {e}")
 
-# Example usage:
 if __name__ == "__main__":
-    input_file = r"Example.mp4" ## Test
-    print(input_file)
-    output_file = "Short.mp4"
-    start_time = 31.92 
-    end_time = 49.2   
-
-    crop_video(input_file, output_file, start_time, end_time)
-
+    video_path = "input_video.mp4"
+    audio_path = extractAudio(video_path)
+    
+    if audio_path:
+        start_time = 10  # start time in seconds
+        end_time = 20    # end time in seconds
+        output_video_path = "cropped_video.mp4"
+        crop_video(video_path, output_video_path, start_time, end_time)
